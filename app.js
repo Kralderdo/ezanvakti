@@ -1,4 +1,10 @@
-const times = [
+const API = "https://ezanvakti.imsakiyem.com/api";
+
+const city = document.getElementById("city");
+const district = document.getElementById("district");
+const timesBox = document.getElementById("times");
+
+const names = [
   ["imsak", "İmsak"],
   ["gunes", "Güneş"],
   ["ogle", "Öğle"],
@@ -7,128 +13,211 @@ const times = [
   ["yatsi", "Yatsı"]
 ];
 
-const cities = [
-  "Adana","Adıyaman","Afyonkarahisar","Ağrı","Aksaray","Amasya",
-  "Ankara","Antalya","Ardahan","Artvin","Aydın","Balıkesir","Bartın",
-  "Batman","Bayburt","Bilecik","Bingöl","Bitlis","Bolu","Burdur","Bursa",
-  "Çanakkale","Çankırı","Çorum","Denizli","Diyarbakır","Düzce","Edirne",
-  "Elazığ","Erzincan","Erzurum","Eskişehir","Gaziantep","Giresun",
-  "Gümüşhane","Hakkari","Hatay","Iğdır","Isparta","İstanbul","İzmir",
-  "Kahramanmaraş","Karabük","Karaman","Kars","Kastamonu","Kayseri",
-  "Kilis","Kırıkkale","Kırklareli","Kırşehir","Kocaeli","Konya",
-  "Kütahya","Malatya","Manisa","Mardin","Mersin","Muğla","Muş",
-  "Nevşehir","Niğde","Ordu","Osmaniye","Rize","Sakarya","Samsun",
-  "Siirt","Sinop","Sivas","Şanlıurfa","Şırnak","Tekirdağ","Tokat",
-  "Trabzon","Tunceli","Uşak","Van","Yalova","Yozgat","Zonguldak"
-];
+let currentTimes = null;
+let countdownTimer = null;
 
-const city = document.getElementById("city");
-const district = document.getElementById("district");
-const timesBox = document.getElementById("times");
+async function getJSON(url) {
+  const response = await fetch(url);
 
-city.innerHTML = cities
-  .map(x => `<option>${x}</option>`)
-  .join("");
+  if (!response.ok) {
+    throw new Error("Veri alınamadı");
+  }
 
-city.value = "Ankara";
-
-const districts = {
-  Ankara: ["Çankaya","Keçiören","Mamak","Sincan","Etimesgut","Polatlı"],
-  İstanbul: ["Kadıköy","Beşiktaş","Üsküdar","Fatih","Bakırköy"],
-  İzmir: ["Konak","Bornova","Karşıyaka","Buca"],
-  Antalya: ["Muratpaşa","Kepez","Konyaaltı"],
-  Bursa: ["Osmangazi","Nilüfer","Yıldırım"],
-  Konya: ["Selçuklu","Meram","Karatay"]
-};
-
-function loadDistricts() {
-
-  const list = districts[city.value] || ["Merkez"];
-
-  district.innerHTML = list
-    .map(x => `<option>${x}</option>`)
-    .join("");
-
-  loadPrayerTimes();
+  return response.json();
 }
 
-function getToday() {
+/* Türkiye */
+async function loadTurkey() {
 
-  const d = new Date();
+  try {
 
-  return d.toLocaleDateString("tr-TR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
+    const countries =
+      await getJSON(`${API}/locations/countries`);
+
+    const turkey =
+      countries.data?.find(x =>
+        String(x.name)
+          .toLowerCase()
+          .includes("türkiye")
+      );
+
+    if (!turkey) {
+      throw new Error("Türkiye bulunamadı");
+    }
+
+    const states =
+      await getJSON(
+        `${API}/locations/states?countryId=${turkey.id}`
+      );
+
+    city.innerHTML = states.data
+      .map(x =>
+        `<option value="${x.id}">
+          ${x.name}
+        </option>`
+      )
+      .join("");
+
+    await loadDistricts();
+
+  } catch (error) {
+
+    console.error(error);
+
+    city.innerHTML =
+      `<option>Türkiye yüklenemedi</option>`;
+
+    district.innerHTML =
+      `<option>Tekrar deneyin</option>`;
+  }
 }
 
-function createTimes() {
 
-  /*
-   * Bu bölüm test amaçlıdır.
-   * Gerçek Diyanet vakitleri sonraki aşamada
-   * sunucu/API üzerinden bağlanacaktır.
-   */
+/* İlçeler */
+async function loadDistricts() {
 
-  return {
-    imsak: "05:10",
-    gunes: "06:35",
-    ogle: "12:45",
-    ikindi: "16:10",
-    aksam: "19:05",
-    yatsi: "20:25"
-  };
+  try {
+
+    const stateId = city.value;
+
+    const result =
+      await getJSON(
+        `${API}/locations/districts?stateId=${stateId}`
+      );
+
+    district.innerHTML =
+      result.data
+        .map(x =>
+          `<option value="${x.id}">
+            ${x.name}
+          </option>`
+        )
+        .join("");
+
+    await loadPrayerTimes();
+
+  } catch (error) {
+
+    console.error(error);
+  }
 }
 
-function loadPrayerTimes() {
 
-  const data = createTimes();
+/* Gerçek vakitler */
+async function loadPrayerTimes() {
 
-  document.getElementById("location").textContent =
-    city.value + " / " + district.value;
+  try {
 
-  document.getElementById("date").textContent =
-    getToday();
+    const districtId = district.value;
 
-  timesBox.innerHTML = times
-    .map(([key,name]) => {
+    const result =
+      await getJSON(
+        `${API}/prayer-times/${districtId}/daily`
+      );
 
-      return `
-        <div class="time" data-time="${key}">
-          <span>${name}</span>
-          <strong>${data[key]}</strong>
-        </div>
-      `;
+    const data =
+      result.data?.[0] ||
+      result.data;
 
-    })
-    .join("");
+    if (!data) {
+      throw new Error("Vakit bulunamadı");
+    }
+
+    currentTimes = {
+
+      imsak:
+        data.fajr ||
+        data.imsak ||
+        data.Imsak,
+
+      gunes:
+        data.sunrise ||
+        data.gunes ||
+        data.Gunes,
+
+      ogle:
+        data.dhuhr ||
+        data.ogle ||
+        data.Ogle,
+
+      ikindi:
+        data.asr ||
+        data.ikindi ||
+        data.Asr,
+
+      aksam:
+        data.maghrib ||
+        data.aksam ||
+        data.Aksam,
+
+      yatsi:
+        data.isha ||
+        data.yatsi ||
+        data.Yatsi
+    };
+
+    renderTimes();
+
+  } catch (error) {
+
+    console.error(error);
+
+    timesBox.innerHTML = `
+      <div class="time">
+        <span>Hata</span>
+        <strong>Vakitler alınamadı</strong>
+      </div>
+    `;
+  }
+}
+
+
+/* Ekrana yaz */
+function renderTimes() {
+
+  timesBox.innerHTML =
+    names.map(([key, name]) => `
+      <div class="time" data-time="${key}">
+        <span>${name}</span>
+        <strong>
+          ${currentTimes[key] || "--:--"}
+        </strong>
+      </div>
+    `).join("");
 
   document.getElementById("iftar").textContent =
-    data.aksam;
+    currentTimes.aksam || "--:--";
 
   document.getElementById("sahur").textContent =
-    data.imsak;
+    currentTimes.imsak || "--:--";
 
-  startCountdown(data);
+  startCountdown();
 }
 
-function toMinutes(value) {
 
-  const [hour,minute] =
-    value.split(":").map(Number);
+/* Saati dakikaya çevir */
+function minutes(value) {
 
-  return hour * 60 + minute;
+  if (!value) return null;
+
+  const parts =
+    String(value).split(":");
+
+  if (parts.length < 2) return null;
+
+  return (
+    Number(parts[0]) * 60 +
+    Number(parts[1])
+  );
 }
 
-function startCountdown(data) {
 
-  const list = times.map(([key,name]) => ({
-    key,
-    name,
-    minutes: toMinutes(data[key])
-  }));
+/* Sonraki vakit */
+function startCountdown() {
+
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+  }
 
   function update() {
 
@@ -139,43 +228,75 @@ function startCountdown(data) {
       now.getMinutes() +
       now.getSeconds() / 60;
 
-    let next =
-      list.find(x => x.minutes > current);
+    let next = null;
 
-    if (!next) {
-      next = list[0];
-      document.getElementById("nextName")
-        .textContent = "Yarın İmsak";
-    } else {
-      document.getElementById("nextName")
-        .textContent = next.name;
+    for (const [key, name] of names) {
+
+      const m =
+        minutes(currentTimes[key]);
+
+      if (m !== null && m > current) {
+
+        next = {
+          key,
+          name,
+          minutes: m
+        };
+
+        break;
+      }
     }
 
-    let seconds =
-      next.minutes * 60 -
-      (
-        now.getHours() * 3600 +
-        now.getMinutes() * 60 +
-        now.getSeconds()
+    if (!next) {
+
+      const first =
+        names[0];
+
+      next = {
+        key: first[0],
+        name: "Yarın İmsak",
+        minutes:
+          minutes(
+            currentTimes[first[0]]
+          ) + 1440
+      };
+    }
+
+    document.getElementById(
+      "nextName"
+    ).textContent = next.name;
+
+    let remaining =
+      Math.floor(
+        next.minutes * 60 -
+        (
+          now.getHours() * 3600 +
+          now.getMinutes() * 60 +
+          now.getSeconds()
+        )
       );
 
-    if (seconds < 0)
-      seconds += 86400;
+    if (remaining < 0) {
+      remaining += 86400;
+    }
 
     const h =
-      Math.floor(seconds / 3600);
+      Math.floor(remaining / 3600);
 
     const m =
-      Math.floor((seconds % 3600) / 60);
+      Math.floor(
+        (remaining % 3600) / 60
+      );
 
     const s =
-      seconds % 60;
+      remaining % 60;
 
-    document.getElementById("countdown")
-      .textContent =
-      String(h).padStart(2,"0") + ":" +
-      String(m).padStart(2,"0") + ":" +
-      String(s).padStart(2,"0");
+    document.getElementById(
+      "countdown"
+    ).textContent =
+      String(h).padStart(2, "0") + ":" +
+      String(m).padStart(2, "0") + ":" +
+      String(s).padStart(2, "0");
 
     document.querySelectorAll(".time")
       .forEach(el => {
@@ -186,50 +307,73 @@ function startCountdown(data) {
         );
 
       });
+
+    document.getElementById(
+      "date"
+    ).textContent =
+      new Date().toLocaleDateString(
+        "tr-TR",
+        {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        }
+      );
   }
 
   update();
 
-  setInterval(update,1000);
+  countdownTimer =
+    setInterval(update, 1000);
 }
 
+
+/* İl değişince ilçeleri yenile */
 city.addEventListener(
   "change",
   loadDistricts
 );
 
+
+/* İlçe değişince vakitleri yenile */
 district.addEventListener(
   "change",
   loadPrayerTimes
 );
 
+
+/* Bildirim */
 document.getElementById("notify")
-  .addEventListener("click", async () => {
+  .addEventListener(
+    "click",
+    async () => {
 
-    if (!("Notification" in window)) {
+      if (!("Notification" in window)) {
 
-      alert(
-        "Bu tarayıcı bildirimleri desteklemiyor."
-      );
+        alert(
+          "Tarayıcınız bildirimleri desteklemiyor."
+        );
 
-      return;
+        return;
+      }
+
+      const permission =
+        await Notification.requestPermission();
+
+      if (permission === "granted") {
+
+        new Notification(
+          "Ezan Vakti",
+          {
+            body:
+              "Bildirimler açıldı."
+          }
+        );
+      }
     }
+  );
 
-    const permission =
-      await Notification.requestPermission();
 
-    if (permission === "granted") {
-
-      new Notification(
-        "Ezan Vakti",
-        {
-          body:
-          "Bildirimler başarıyla açıldı."
-        }
-      );
-
-    }
-
-  });
-
-loadDistricts();
+/* Başlat */
+loadTurkey();
