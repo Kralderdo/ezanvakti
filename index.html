@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071c16">
+  <meta name="description" content="Türkiye ve dünya için namaz, ezan, iftar ve sahur vakitleri.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg">
+  <title>Ezan Vakti</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+  <div class="brand">
+    <span>☪</span>
+    <div>
+      <b>Ezan Vakti</b>
+      <small>Namaz • İftar • Sahur</small>
+    </div>
+  </div>
+
+  <button id="notify">🔔 Bildirimleri Aç</button>
+</header>
+
+<main>
+
+<section class="hero">
+
+  <div>
+    <p class="eyebrow">BUGÜNÜN VAKİTLERİ</p>
+
+    <h1 id="location">Türkiye</h1>
+
+    <p id="date">Yükleniyor…</p>
+
+    <div class="selects">
+
+      <select id="city">
+        <option>İl yükleniyor…</option>
+      </select>
+
+      <select id="district">
+        <option>İlçe yükleniyor…</option>
+      </select>
+
+    </div>
+  </div>
+
+  <div class="next">
+
+    <span>SONRAKİ VAKİT</span>
+
+    <strong id="nextName">—</strong>
+
+    <b id="countdown">--:--:--</b>
+
+  </div>
+
+</section>
+
+
+<section class="grid" id="times"></section>
+
+
+<section class="cards">
+
+  <div class="card">
+    <span>🌙</span>
+    <b>İftar</b>
+    <strong id="iftar">—</strong>
+    <small>Akşam ezanı</small>
+  </div>
+
+  <div class="card">
+    <span>🌅</span>
+    <b>Sahur Bitişi</b>
+    <strong id="sahur">—</strong>
+    <small>İmsak vakti</small>
+  </div>
+
+  <div class="card">
+    <span>🧭</span>
+    <b>Kıble</b>
+    <strong id="qibla">—</strong>
+    <small>Yaklaşık yön</small>
+  </div>
+
+</section>
+
+
+<section class="info">
+
+  <h2>🔔 Ezan Bildirimleri</h2>
+
+  <p>
+    Bildirimleri açarak vakit geldiğinde cihazında
+    hatırlatma alabilirsin.
+  </p>
+
+</section>
+
+</main>
+
+
+<footer>
+  © 2026 Ezan Vakti
+</footer>
+
+
+<script src="app.js"></script>
+
+</body>
+      </html>
