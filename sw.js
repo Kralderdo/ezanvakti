@@ -1,4 +1,4 @@
-const CACHE_NAME = "ezan-vakti-2027-v1";
+const CACHE_NAME = "ezan-vakti-v3";
 
 const FILES = [
   "./",
@@ -9,172 +9,63 @@ const FILES = [
   "./icon.svg"
 ];
 
-
-/* =========================
-   KURULUM
-   ========================= */
-
+/* Kurulum */
 self.addEventListener("install", event => {
-
   event.waitUntil(
-
     caches.open(CACHE_NAME)
-      .then(cache => {
-
-        return cache.addAll(FILES);
-
-      })
-      .then(() => {
-
-        return self.skipWaiting();
-
-      })
-
+      .then(cache => cache.addAll(FILES))
+      .then(() => self.skipWaiting())
   );
-
 });
 
-
-/* =========================
-   AKTİVASYON
-   ========================= */
-
+/* Aktivasyon */
 self.addEventListener("activate", event => {
-
   event.waitUntil(
-
-    caches.keys()
-      .then(keys => {
-
-        return Promise.all(
-
-          keys
-            .filter(key => {
-              return key !== CACHE_NAME;
-            })
-            .map(key => {
-              return caches.delete(key);
-            })
-
-        );
-
-      })
-      .then(() => {
-
-        return self.clients.claim();
-
-      })
-
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      )
+    ).then(() => self.clients.claim())
   );
-
 });
 
-
-/* =========================
-   İSTEKLER
-   ========================= */
-
+/* İnternet varsa günceli al, yoksa önbellekten göster */
 self.addEventListener("fetch", event => {
 
-  const request = event.request;
-
-
-  /*
-   * Sadece GET isteklerini
-   * Service Worker yönetsin.
-   */
-
-  if (
-    request.method !== "GET"
-  ) {
-
+  if (event.request.method !== "GET") {
     return;
-
   }
-
-
-  /*
-   * NAMAZ VAKİTLERİ API
-   *
-   * API'yi cache'lemiyoruz.
-   * Böylece gerçek ve güncel
-   * vakitler alınır.
-   */
-
-  if (
-    request.url.includes(
-      "ezanvakti.imsakiyem.com/api"
-    )
-  ) {
-
-    event.respondWith(
-
-      fetch(request, {
-        cache: "no-store"
-      })
-
-    );
-
-    return;
-
-  }
-
-
-  /*
-   * DİĞER DOSYALAR
-   *
-   * Önce internetten güncel dosyayı
-   * almaya çalış.
-   *
-   * İnternet yoksa cache kullan.
-   */
 
   event.respondWith(
-
-    fetch(request)
-
+    fetch(event.request)
       .then(response => {
 
-        /*
-         * Başarılı cevap geldiyse
-         * cache'i güncelle.
-         */
+        const copy = response.clone();
 
-        if (
-          response &&
-          response.status === 200
-        ) {
-
-          const responseClone =
-            response.clone();
-
-          caches.open(CACHE_NAME)
-            .then(cache => {
-
-              cache.put(
-                request,
-                responseClone
-              );
-
-            });
-
-        }
+        caches.open(CACHE_NAME)
+          .then(cache => {
+            cache.put(event.request, copy);
+          });
 
         return response;
-
       })
-
-      .catch(() => {
-
-        /*
-         * İnternet yoksa
-         * kayıtlı dosyayı kullan.
-         */
-
-        return caches.match(request);
-
-      })
-
+      .catch(() =>
+        caches.match(event.request)
+      )
   );
+
+});
+
+/* Eski Service Worker güncellemesini zorla */
+self.addEventListener("message", event => {
+
+  if (
+    event.data &&
+    event.data.type === "SKIP_WAITING"
+  ) {
+    self.skipWaiting();
+  }
 
 });
