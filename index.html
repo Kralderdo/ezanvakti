@@ -1,362 +1,426 @@
-<!DOCTYPE html><html lang="tr">
+<!DOCTYPE html>
+<html lang="tr">
+
 <head>
-  <meta charset="UTF-8"><meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
 
-«»
+  <meta charset="UTF-8">
 
-<meta
-name="theme-color"
-content="#050807"
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-«»
+  <meta
+    name="theme-color"
+    content="#050807"
+  >
 
-<meta
-name="description"
-content="Türkiye için güncel ezan vakitleri, namaz, iftar, sahur ve kıble yönü."
+  <meta
+    name="description"
+    content="Türkiye için güncel ezan vakitleri, namaz, iftar, sahur ve kıble yönü."
+  >
 
-«»
+  <meta
+    name="keywords"
+    content="ezan vakti, namaz vakitleri, iftar, sahur, kıble, Türkiye"
+  >
 
-<meta
-name="keywords"
-content="ezan vakti, namaz vakitleri, iftar, sahur, kıble, Türkiye"
+  <meta
+    name="author"
+    content="Ezan Vakti"
+  >
 
-«»
+  <title>Ezan Vakti — Namaz • İftar • Sahur</title>
 
-<meta
-name="author"
-content="Ezan Vakti"
-
-«»
-
-  <title>Ezan Vakti — Namaz • İftar • Sahur</title>  <link
+  <link
     rel="manifest"
     href="./manifest.json"
-  >  <link
+  >
+
+  <link
     rel="icon"
     href="./icon.svg"
     type="image/svg+xml"
-  >  <link
+  >
+
+  <link
     rel="stylesheet"
     href="./style.css"
   >
-</head><body>  <!-- =========================
+
+</head>
+
+
+<body>
+
+
+  <!-- =========================
        ÜST MENÜ
-       ========================= -->  <header class="topbar"><div class="brand">
+       ========================= -->
 
-  <div class="brand-icon">
-    ☪
-  </div>
+  <header class="topbar">
 
-  <div>
-    <h1>Ezan Vakti</h1>
+    <div class="brand">
 
-    <p>
-      Namaz • İftar • Sahur
-    </p>
-  </div>
+      <div class="brand-icon">
+        ☪
+      </div>
 
-</div>
+      <div>
 
-<button
-  id="notify"
-  class="notify-btn"
-  type="button"
->
-  🔔 Bildirimleri Aç
-</button>
+        <h1>Ezan Vakti</h1>
 
-  </header>  <!-- =========================
+        <p>
+          Namaz • İftar • Sahur
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <button
+      id="notify"
+      class="notify-btn"
+      type="button"
+    >
+      🔔 Bildirimleri Aç
+    </button>
+
+  </header>
+
+
+
+  <!-- =========================
        ANA İÇERİK
-       ========================= -->  <main class="container"><!-- BUGÜNÜN VAKİTLERİ -->
+       ========================= -->
 
-<section class="hero">
+  <main class="container">
 
-  <p class="eyebrow">
-    🕌 BUGÜNÜN VAKİTLERİ
-  </p>
 
-  <h2 id="location">
-    Türkiye
-  </h2>
+    <!-- BUGÜNÜN VAKİTLERİ -->
 
-  <p
-    id="date"
-    class="date"
-  >
-    Yükleniyor…
-  </p>
+    <section class="hero">
 
-</section>
-
-
-<!-- İL / İLÇE -->
-
-<section class="location-card">
-
-  <div class="select-group">
-
-    <label for="city">
-      İl
-    </label>
-
-    <select id="city">
-
-      <option>
-        İller yükleniyor…
-      </option>
-
-    </select>
-
-  </div>
-
-
-  <div class="select-group">
-
-    <label for="district">
-      İlçe
-    </label>
-
-    <select id="district">
-
-      <option>
-        İlçe bekleniyor…
-      </option>
-
-    </select>
-
-  </div>
-
-</section>
-
-
-<!-- SONRAKİ VAKİT -->
-
-<section class="next-card">
-
-  <div>
-
-    <span class="next-label">
-      SONRAKİ VAKİT
-    </span>
-
-    <strong id="nextName">
-      —
-    </strong>
-
-  </div>
-
-  <div
-    id="countdown"
-    class="countdown"
-  >
-    --:--:--
-  </div>
-
-</section>
-
-
-<!-- NAMAZ VAKİTLERİ -->
-
-<section
-  id="times"
-  class="times"
->
-
-  <div class="loading-card">
-
-    <span>
-      🕌
-    </span>
-
-    <b>
-      Vakitler yükleniyor…
-    </b>
-
-    <small>
-      Lütfen bekleyin
-    </small>
-
-  </div>
-
-</section>
-
-
-<!-- İFTAR / SAHUR -->
-
-<section class="special-grid">
-
-  <article class="special-card iftar">
-
-    <div class="special-icon">
-      🌙
-    </div>
-
-    <div>
-
-      <span>
-        İftar
-      </span>
-
-      <strong id="iftar">
-        --:--
-      </strong>
-
-      <small>
-        Akşam ezanı
-      </small>
-
-    </div>
-
-  </article>
-
-
-  <article class="special-card sahur">
-
-    <div class="special-icon">
-      🌅
-    </div>
-
-    <div>
-
-      <span>
-        Sahur Bitişi
-      </span>
-
-      <strong id="sahur">
-        --:--
-      </strong>
-
-      <small>
-        İmsak vakti
-      </small>
-
-    </div>
-
-  </article>
-
-</section>
-
-
-<!-- KIBLE -->
-
-<section class="qibla-card">
-
-  <div class="qibla-info">
-
-    <div class="qibla-icon">
-      🧭
-    </div>
-
-    <div>
-
-      <h3>
-        Kıble
-      </h3>
-
-      <p>
-        Yaklaşık kıble yönünü
-        görmek için konumunu kullan.
+      <p class="eyebrow">
+        🕌 BUGÜNÜN VAKİTLERİ
       </p>
 
+      <h2 id="location">
+        Türkiye
+      </h2>
+
+      <p
+        id="date"
+        class="date"
+      >
+        Yükleniyor…
+      </p>
+
+    </section>
+
+
+
+    <!-- İL / İLÇE -->
+
+    <section class="location-card">
+
+      <div class="select-group">
+
+        <label for="city">
+          İl
+        </label>
+
+        <select id="city">
+
+          <option>
+            İller yükleniyor…
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="select-group">
+
+        <label for="district">
+          İlçe
+        </label>
+
+        <select id="district">
+
+          <option>
+            İlçe bekleniyor…
+          </option>
+
+        </select>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- SONRAKİ VAKİT -->
+
+    <section class="next-card">
+
+      <div>
+
+        <span class="next-label">
+          SONRAKİ VAKİT
+        </span>
+
+        <strong id="nextName">
+          —
+        </strong>
+
+      </div>
+
+
+      <div
+        id="countdown"
+        class="countdown"
+      >
+        --:--:--
+      </div>
+
+    </section>
+
+
+
+    <!-- NAMAZ VAKİTLERİ -->
+
+    <section
+      id="times"
+      class="times"
+    >
+
+      <div class="loading-card">
+
+        <span>
+          🕌
+        </span>
+
+        <b>
+          Vakitler yükleniyor…
+        </b>
+
+        <small>
+          Lütfen bekleyin
+        </small>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- İFTAR / SAHUR -->
+
+    <section class="special-grid">
+
+      <article class="special-card iftar">
+
+        <div class="special-icon">
+          🌙
+        </div>
+
+        <div>
+
+          <span>
+            İftar
+          </span>
+
+          <strong id="iftar">
+            --:--
+          </strong>
+
+          <small>
+            Akşam ezanı
+          </small>
+
+        </div>
+
+      </article>
+
+
+
+      <article class="special-card sahur">
+
+        <div class="special-icon">
+          🌅
+        </div>
+
+        <div>
+
+          <span>
+            Sahur Bitişi
+          </span>
+
+          <strong id="sahur">
+            --:--
+          </strong>
+
+          <small>
+            İmsak vakti
+          </small>
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+
+    <!-- KIBLE -->
+
+    <section class="qibla-card">
+
+      <div class="qibla-info">
+
+        <div class="qibla-icon">
+          🧭
+        </div>
+
+        <div>
+
+          <h3>
+            Kıble
+          </h3>
+
+          <p>
+            Yaklaşık kıble yönünü
+            görmek için konumunu kullan.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <button
+        id="qiblaBtn"
+        class="qibla-btn"
+        type="button"
+      >
+        Kıbleyi Bul
+      </button>
+
+
+      <div
+        id="qibla"
+        class="qibla-result"
+      >
+        —
+      </div>
+
+    </section>
+
+
+
+    <!-- BİLDİRİMLER -->
+
+    <section class="notification-card">
+
+      <div class="bell">
+        🔔
+      </div>
+
+      <div>
+
+        <h2>
+          Ezan Bildirimleri
+        </h2>
+
+        <p>
+          Bildirimleri açarak vakit
+          geldiğinde cihazında
+          hatırlatma alabilirsin.
+        </p>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         TIKTOK DESTEK / ÖNERİ
+         ========================= -->
+
+    <section class="tiktok-card">
+
+      <div class="tiktok-icon">
+        🎵
+      </div>
+
+
+      <div class="tiktok-content">
+
+        <span class="tiktok-label">
+          DESTEK & ÖNERİ
+        </span>
+
+        <h2>
+          TikTok Sayfam
+        </h2>
+
+        <p>
+          Ezan Vakti projesini desteklemek,
+          önerilerini paylaşmak ve
+          güncellemeleri takip etmek için
+          TikTok sayfamı ziyaret edebilirsin.
+        </p>
+
+
+        <a
+          class="tiktok-btn"
+          href="https://www.tiktok.com/@sinanbeyim"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          🎵 TikTok'a Git
+        </a>
+
+      </div>
+
+    </section>
+
+
+  </main>
+
+
+
+  <!-- =========================
+       ALT BİLGİ
+       ========================= -->
+
+  <footer>
+
+    <div class="footer-brand">
+      ☪ Ezan Vakti
     </div>
 
-  </div>
-
-
-  <button
-    id="qiblaBtn"
-    class="qibla-btn"
-    type="button"
-  >
-    Kıbleyi Bul
-  </button>
-
-
-  <div
-    id="qibla"
-    class="qibla-result"
-  >
-    —
-  </div>
-
-</section>
-
-
-<!-- BİLDİRİMLER -->
-
-<section class="notification-card">
-
-  <div class="bell">
-    🔔
-  </div>
-
-  <div>
-
-    <h2>
-      Ezan Bildirimleri
-    </h2>
-
     <p>
-      Bildirimleri açarak vakit
-      geldiğinde cihazında
-      hatırlatma alabilirsin.
+      Doğru vakit • Sade kullanım
     </p>
 
-  </div>
+    <span>
+      © 2026 Ezan Vakti
+    </span>
 
-</section>
+  </footer>
 
 
-<!-- =========================
-     TIKTOK DESTEK / YORUM
-     ========================= -->
 
-<section class="tiktok-card">
-
-  <div class="tiktok-icon">
-    🎵
-  </div>
-
-  <h2>
-    TikTok Sayfam
-  </h2>
-
-  <p>
-    Ezan Vakti projesini desteklemek
-    ve önerilerini paylaşmak için
-    TikTok sayfamı ziyaret edebilirsin.
-  </p>
-
-  <a
-    class="tiktok-btn"
-    href="https://www.tiktok.com/@sinanbeyim"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    🎵 TikTok'a Git
-  </a>
-
-</section>
-
-  </main>  <!-- =========================
-       ALT BİLGİ
-       ========================= -->  <footer><div class="footer-brand">
-  ☪ Ezan Vakti
-</div>
-
-<p>
-  Doğru vakit • Sade kullanım
-</p>
-
-<span>
-  © 2026 Ezan Vakti
-</span>
-
-  </footer>  <!-- =========================
+  <!-- =========================
        SERVICE WORKER
-       ========================= -->  <script>
+       ========================= -->
+
+  <script>
 
     if ("serviceWorker" in navigator) {
 
@@ -380,7 +444,17 @@ content="Ezan Vakti"
 
     }
 
-  </script>  <!-- =========================
+  </script>
+
+
+
+  <!-- =========================
        JAVASCRIPT
-       ========================= -->  <script src="./app.js"></script></body>
-  </html>
+       ========================= -->
+
+  <script src="./app.js"></script>
+
+
+</body>
+
+        </html>
