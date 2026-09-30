@@ -1,76 +1,302 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">  <meta name="theme-color" content="#071c16">
-  <meta name="description" content="Türkiye ve dünya için namaz, ezan, iftar ve sahur vakitleri.">  <link rel="manifest" href="/manifest.json">
-  <link rel="icon" href="/icon.svg">  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">  <title>Ezan Vakti</title>  <link rel="stylesheet" href="/style.css">
-</head><body><header>
-  <div class="brand">
-    <span>☪</span>
-    <div>
-      <b>Ezan Vakti</b>
-      <small>Namaz • İftar • Sahur</small>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#050505"
+  >
+
+  <meta
+    name="description"
+    content="Türkiye için güncel ezan vakitleri, iftar, sahur ve kıble yönü."
+  >
+
+  <title>Ezan Vakti — Namaz • İftar • Sahur</title>
+
+  <link
+    rel="manifest"
+    href="./manifest.json"
+  >
+
+  <link
+    rel="icon"
+    href="./icon.svg"
+    type="image/svg+xml"
+  >
+
+  <link
+    rel="stylesheet"
+    href="./style.css"
+  >
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">☪</div>
+
+      <div>
+        <h1>Ezan Vakti</h1>
+        <p>Namaz • İftar • Sahur</p>
+      </div>
     </div>
-  </div><button id="notify">🔔 Bildirimleri Aç</button>
 
-</header><main><section class="hero">  <div>
-    <p class="eyebrow">BUGÜNÜN VAKİTLERİ</p><h1 id="location">Türkiye</h1>
+    <button
+      id="notify"
+      class="notify-btn"
+      type="button"
+    >
+      🔔 Bildirimleri Aç
+    </button>
+  </header>
 
-<p id="date">Yükleniyor…</p>
 
-<div class="selects">
+  <main class="container">
 
-  <select id="city">
-    <option>İl yükleniyor…</option>
-  </select>
+    <section class="hero">
+      <p class="eyebrow">
+        🕌 BUGÜNÜN VAKİTLERİ
+      </p>
 
-  <select id="district">
-    <option>İlçe yükleniyor…</option>
-  </select>
+      <h2 id="location">
+        Türkiye
+      </h2>
 
-</div>
+      <p
+        id="date"
+        class="date"
+      >
+        Yükleniyor…
+      </p>
+    </section>
 
-  </div>  <div class="next"><span>SONRAKİ VAKİT</span>
 
-<strong id="nextName">—</strong>
+    <section class="location-card">
 
-<b id="countdown">--:--:--</b>
+      <div class="select-group">
 
-  </div></section><section class="grid" id="times"></section><section class="cards">  <div class="card">
-    <span>🌙</span>
-    <b>İftar</b>
-    <strong id="iftar">—</strong>
-    <small>Akşam ezanı</small>
-  </div>  <div class="card">
-    <span>🌅</span>
-    <b>Sahur Bitişi</b>
-    <strong id="sahur">—</strong>
-    <small>İmsak vakti</small>
-  </div>  <div class="card">
-    <span>🧭</span>
-    <b>Kıble</b>
-    <strong id="qibla">—</strong>
-    <small>Yaklaşık yön</small>
-  </div></section><section class="info">  <h2>🔔 Ezan Bildirimleri</h2>  <p>
-    Bildirimleri açarak vakit geldiğinde cihazında
-    hatırlatma alabilirsin.
-  </p></section></main><footer>
-  © 2026 Ezan Vakti
-</footer><script src="/app.js"></script><script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function () {
-    navigator.serviceWorker.register("/sw.js")
-      .then(function () {
-        console.log("Ezan Vakti PWA hazır.");
-      })
-      .catch(function (error) {
-        console.error("Service Worker hatası:", error);
-      });
-  });
-}
-</script></body>
+        <label for="city">
+          İl
+        </label>
+
+        <select id="city">
+          <option>
+            İller yükleniyor…
+          </option>
+        </select>
+
+      </div>
+
+
+      <div class="select-group">
+
+        <label for="district">
+          İlçe
+        </label>
+
+        <select id="district">
+          <option>
+            İlçe yükleniyor…
+          </option>
+        </select>
+
+      </div>
+
+    </section>
+
+
+    <section class="next-card">
+
+      <div>
+        <span class="next-label">
+          SONRAKİ VAKİT
+        </span>
+
+        <strong id="nextName">
+          —
+        </strong>
+      </div>
+
+      <div
+        id="countdown"
+        class="countdown"
+      >
+        --:--:--
+      </div>
+
+    </section>
+
+
+    <section
+      id="times"
+      class="times"
+    >
+      <div class="loading-card">
+        <span>🕌</span>
+        <b>Vakitler yükleniyor…</b>
+        <small>
+          Lütfen bekleyin
+        </small>
+      </div>
+    </section>
+
+
+    <section class="special-grid">
+
+      <article class="special-card iftar">
+
+        <div class="special-icon">
+          🌙
+        </div>
+
+        <div>
+          <span>
+            İftar
+          </span>
+
+          <strong id="iftar">
+            --:--
+          </strong>
+
+          <small>
+            Akşam ezanı
+          </small>
+        </div>
+
+      </article>
+
+
+      <article class="special-card sahur">
+
+        <div class="special-icon">
+          🌅
+        </div>
+
+        <div>
+          <span>
+            Sahur Bitişi
+          </span>
+
+          <strong id="sahur">
+            --:--
+          </strong>
+
+          <small>
+            İmsak vakti
+          </small>
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <section class="qibla-card">
+
+      <div class="qibla-info">
+
+        <div class="qibla-icon">
+          🧭
+        </div>
+
+        <div>
+          <h3>Kıble</h3>
+
+          <p>
+            Yaklaşık kıble yönünü
+            görmek için konumunu kullan.
+          </p>
+        </div>
+
+      </div>
+
+      <button
+        id="qiblaBtn"
+        class="qibla-btn"
+        type="button"
+      >
+        Kıbleyi Bul
+      </button>
+
+      <div
+        id="qibla"
+        class="qibla-result"
+      >
+        —
+      </div>
+
+    </section>
+
+
+    <section class="notification-card">
+
+      <div class="bell">
+        🔔
+      </div>
+
+      <div>
+
+        <h2>
+          Ezan Bildirimleri
+        </h2>
+
+        <p>
+          Bildirimleri açarak vakit
+          geldiğinde cihazında
+          hatırlatma alabilirsin.
+        </p>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <footer>
+
+    <div class="footer-brand">
+      ☪ Ezan Vakti
+    </div>
+
+    <p>
+      Doğru vakit • Sade kullanım
+    </p>
+
+    <span>
+      © 2026 Ezan Vakti
+    </span>
+
+  </footer>
+
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener(
+        "load",
+        () => {
+          navigator.serviceWorker.register(
+            "./sw.js"
+          ).catch(error => {
+            console.error(
+              "Service Worker:",
+              error
+            );
+          });
+        }
+      );
+    }
+  </script>
+
+  <script src="./app.js"></script>
+
+</body>
   </html>
