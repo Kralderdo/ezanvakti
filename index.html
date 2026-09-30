@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
+
   <meta charset="UTF-8">
 
   <meta
@@ -15,10 +17,17 @@
 
   <meta
     name="description"
-    content="Türkiye için güncel ezan vakitleri, iftar, sahur ve kıble yönü."
+    content="Türkiye için güncel ezan ve namaz vakitleri, iftar, sahur ve kıble yönü."
   >
 
-  <title>Ezan Vakti — Namaz • İftar • Sahur</title>
+  <meta
+    name="robots"
+    content="index, follow"
+  >
+
+  <title>
+    Ezan Vakti 2027 — Namaz • Ezan • İftar • Sahur
+  </title>
 
   <link
     rel="manifest"
@@ -35,9 +44,16 @@
     rel="stylesheet"
     href="./style.css"
   >
+
 </head>
 
+
 <body>
+
+
+  <!-- =========================
+       ÜST MENÜ
+  ========================== -->
 
   <header class="topbar">
 
@@ -48,11 +64,19 @@
       </div>
 
       <div>
-        <h1>Ezan Vakti</h1>
-        <p>Namaz • İftar • Sahur</p>
+
+        <h1>
+          Ezan Vakti
+        </h1>
+
+        <p>
+          Namaz • İftar • Sahur
+        </p>
+
       </div>
 
     </div>
+
 
     <button
       id="notify"
@@ -65,8 +89,15 @@
   </header>
 
 
+
+  <!-- =========================
+       ANA İÇERİK
+  ========================== -->
+
   <main class="container">
 
+
+    <!-- HERO -->
 
     <section class="hero">
 
@@ -74,9 +105,11 @@
         🕌 BUGÜNÜN VAKİTLERİ
       </p>
 
+
       <h2 id="location">
         Türkiye
       </h2>
+
 
       <p
         id="date"
@@ -88,7 +121,11 @@
     </section>
 
 
+
+    <!-- İL / İLÇE -->
+
     <section class="location-card">
+
 
       <div class="select-group">
 
@@ -96,13 +133,17 @@
           İl
         </label>
 
+
         <select id="city">
+
           <option>
             İller yükleniyor…
           </option>
+
         </select>
 
       </div>
+
 
 
       <div class="select-group">
@@ -111,18 +152,26 @@
           İlçe
         </label>
 
+
         <select id="district">
+
           <option>
-            İlçe yükleniyor…
+            İlçe bekleniyor…
           </option>
+
         </select>
 
       </div>
 
+
     </section>
 
 
+
+    <!-- SONRAKİ VAKİT -->
+
     <section class="next-card">
+
 
       <div>
 
@@ -130,11 +179,13 @@
           SONRAKİ VAKİT
         </span>
 
+
         <strong id="nextName">
           —
         </strong>
 
       </div>
+
 
       <div
         id="countdown"
@@ -143,8 +194,12 @@
         --:--:--
       </div>
 
+
     </section>
 
+
+
+    <!-- NAMAZ VAKİTLERİ -->
 
     <section
       id="times"
@@ -153,7 +208,9 @@
 
       <div class="loading-card">
 
-        <span>🕌</span>
+        <span>
+          🕌
+        </span>
 
         <b>
           Vakitler yükleniyor…
@@ -168,6 +225,9 @@
     </section>
 
 
+
+    <!-- İFTAR / SAHUR -->
+
     <section class="special-grid">
 
 
@@ -177,15 +237,18 @@
           🌙
         </div>
 
+
         <div>
 
           <span>
             İftar
           </span>
 
+
           <strong id="iftar">
             --:--
           </strong>
+
 
           <small>
             Akşam ezanı
@@ -196,11 +259,13 @@
       </article>
 
 
+
       <article class="special-card sahur">
 
         <div class="special-icon">
           🌅
         </div>
+
 
         <div>
 
@@ -208,9 +273,11 @@
             Sahur Bitişi
           </span>
 
+
           <strong id="sahur">
             --:--
           </strong>
+
 
           <small>
             İmsak vakti
@@ -224,7 +291,11 @@
     </section>
 
 
+
+    <!-- KIBLE -->
+
     <section class="qibla-card">
+
 
       <div class="qibla-info">
 
@@ -232,15 +303,17 @@
           🧭
         </div>
 
+
         <div>
 
           <h3>
             Kıble
           </h3>
 
+
           <p>
-            Yaklaşık kıble yönünü
-            görmek için konumunu kullan.
+            Konumunu kullanarak
+            yaklaşık kıble yönünü bul.
           </p>
 
         </div>
@@ -264,20 +337,27 @@
         —
       </div>
 
+
     </section>
 
 
+
+    <!-- BİLDİRİMLER -->
+
     <section class="notification-card">
+
 
       <div class="bell">
         🔔
       </div>
+
 
       <div>
 
         <h2>
           Ezan Bildirimleri
         </h2>
+
 
         <p>
           Bildirimleri açarak vakit
@@ -287,57 +367,6 @@
 
       </div>
 
-    </section>
-
-
-    <!-- DESTEK & YORUM -->
-
-    <section class="support-section">
-
-      <div class="support-card">
-
-        <div class="support-icon">
-          ❤️
-        </div>
-
-        <h2>
-          Destek & Yorum
-        </h2>
-
-        <p>
-          Ezan Vakti'ni beğendiysen
-          destek olabilir, görüş ve
-          önerilerini TikTok sayfamdan
-          paylaşabilirsin.
-        </p>
-
-
-        <div class="support-buttons">
-
-
-          <a
-            href="https://www.tiktok.com/@sinanbeyim"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="support-btn tiktok-btn"
-          >
-            🎵 TikTok Sayfam
-          </a>
-
-
-          <a
-            href="https://www.tiktok.com/@sinanbeyim"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="support-btn comment-btn"
-          >
-            💬 Yorum / Öneri Gönder
-          </a>
-
-
-        </div>
-
-      </div>
 
     </section>
 
@@ -345,22 +374,60 @@
   </main>
 
 
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+
   <footer>
+
 
     <div class="footer-brand">
       ☪ Ezan Vakti
     </div>
 
+
     <p>
       Doğru vakit • Sade kullanım
     </p>
 
+
+    <div class="footer-actions">
+
+
+      <a
+        href="https://www.tiktok.com/@sinanbeyim"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="footer-btn tiktok-btn"
+      >
+        🎵 TikTok'ta Destek Ol
+      </a>
+
+
+      <a
+        href="https://www.tiktok.com/@sinanbeyim"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="footer-btn comment-btn"
+      >
+        💬 Öneri & Yorum
+      </a>
+
+
+    </div>
+
+
     <span>
-      © 2026 Ezan Vakti
+      © 2027 Ezan Vakti
     </span>
+
 
   </footer>
 
+
+
+  <!-- SERVICE WORKER -->
 
   <script>
 
@@ -389,7 +456,11 @@
   </script>
 
 
+  <!-- APP -->
+
   <script src="./app.js"></script>
 
+
 </body>
-                                  </html>
+
+</html>
