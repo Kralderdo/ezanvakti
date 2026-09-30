@@ -40,13 +40,18 @@
 <body>
 
   <header class="topbar">
+
     <div class="brand">
-      <div class="brand-icon">☪</div>
+
+      <div class="brand-icon">
+        ☪
+      </div>
 
       <div>
         <h1>Ezan Vakti</h1>
         <p>Namaz • İftar • Sahur</p>
       </div>
+
     </div>
 
     <button
@@ -56,12 +61,15 @@
     >
       🔔 Bildirimleri Aç
     </button>
+
   </header>
 
 
   <main class="container">
 
+
     <section class="hero">
+
       <p class="eyebrow">
         🕌 BUGÜNÜN VAKİTLERİ
       </p>
@@ -76,6 +84,7 @@
       >
         Yükleniyor…
       </p>
+
     </section>
 
 
@@ -116,6 +125,7 @@
     <section class="next-card">
 
       <div>
+
         <span class="next-label">
           SONRAKİ VAKİT
         </span>
@@ -123,6 +133,7 @@
         <strong id="nextName">
           —
         </strong>
+
       </div>
 
       <div
@@ -139,17 +150,26 @@
       id="times"
       class="times"
     >
+
       <div class="loading-card">
+
         <span>🕌</span>
-        <b>Vakitler yükleniyor…</b>
+
+        <b>
+          Vakitler yükleniyor…
+        </b>
+
         <small>
           Lütfen bekleyin
         </small>
+
       </div>
+
     </section>
 
 
     <section class="special-grid">
+
 
       <article class="special-card iftar">
 
@@ -158,6 +178,7 @@
         </div>
 
         <div>
+
           <span>
             İftar
           </span>
@@ -169,6 +190,7 @@
           <small>
             Akşam ezanı
           </small>
+
         </div>
 
       </article>
@@ -181,6 +203,7 @@
         </div>
 
         <div>
+
           <span>
             Sahur Bitişi
           </span>
@@ -192,9 +215,11 @@
           <small>
             İmsak vakti
           </small>
+
         </div>
 
       </article>
+
 
     </section>
 
@@ -208,15 +233,20 @@
         </div>
 
         <div>
-          <h3>Kıble</h3>
+
+          <h3>
+            Kıble
+          </h3>
 
           <p>
             Yaklaşık kıble yönünü
             görmek için konumunu kullan.
           </p>
+
         </div>
 
       </div>
+
 
       <button
         id="qiblaBtn"
@@ -225,6 +255,7 @@
       >
         Kıbleyi Bul
       </button>
+
 
       <div
         id="qibla"
@@ -258,6 +289,59 @@
 
     </section>
 
+
+    <!-- DESTEK & YORUM -->
+
+    <section class="support-section">
+
+      <div class="support-card">
+
+        <div class="support-icon">
+          ❤️
+        </div>
+
+        <h2>
+          Destek & Yorum
+        </h2>
+
+        <p>
+          Ezan Vakti'ni beğendiysen
+          destek olabilir, görüş ve
+          önerilerini TikTok sayfamdan
+          paylaşabilirsin.
+        </p>
+
+
+        <div class="support-buttons">
+
+
+          <a
+            href="https://www.tiktok.com/@sinanbeyim"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="support-btn tiktok-btn"
+          >
+            🎵 TikTok Sayfam
+          </a>
+
+
+          <a
+            href="https://www.tiktok.com/@sinanbeyim"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="support-btn comment-btn"
+          >
+            💬 Yorum / Öneri Gönder
+          </a>
+
+
+        </div>
+
+      </div>
+
+    </section>
+
+
   </main>
 
 
@@ -279,24 +363,33 @@
 
 
   <script>
+
     if ("serviceWorker" in navigator) {
+
       window.addEventListener(
         "load",
         () => {
-          navigator.serviceWorker.register(
-            "./sw.js"
-          ).catch(error => {
-            console.error(
-              "Service Worker:",
-              error
-            );
-          });
+
+          navigator.serviceWorker
+            .register("./sw.js")
+            .catch(error => {
+
+              console.error(
+                "Service Worker:",
+                error
+              );
+
+            });
+
         }
       );
+
     }
+
   </script>
+
 
   <script src="./app.js"></script>
 
 </body>
-  </html>
+                                  </html>
