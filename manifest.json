@@ -1,13 +1,13 @@
 {
   "name": "Ezan Vakti",
   "short_name": "Ezan Vakti",
-  "description": "Türkiye için güncel namaz, ezan, iftar ve sahur vakitleri.",
+  "description": "Türkiye için güncel ezan ve namaz vakitleri, iftar, sahur ve kıble yönü.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#050807",
-  "theme_color": "#0b7a3b",
+  "theme_color": "#19c77a",
   "lang": "tr-TR",
   "dir": "ltr",
   "icons": [
