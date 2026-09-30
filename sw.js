@@ -1,6 +1,6 @@
-const CACHE_NAME = "ezan-vakti-v3";
+const CACHE_NAME = "ezan-vakti-2027-v1";
 
-const APP_FILES = [
+const FILES = [
   "./",
   "./index.html",
   "./style.css",
@@ -9,130 +9,172 @@ const APP_FILES = [
   "./icon.svg"
 ];
 
+
+/* =========================
+   KURULUM
+   ========================= */
+
 self.addEventListener("install", event => {
+
   event.waitUntil(
+
     caches.open(CACHE_NAME)
-      .then(cache =>
-        cache.addAll(APP_FILES)
-      )
-      .then(() =>
-        self.skipWaiting()
-      )
+      .then(cache => {
+
+        return cache.addAll(FILES);
+
+      })
+      .then(() => {
+
+        return self.skipWaiting();
+
+      })
+
   );
+
 });
+
+
+/* =========================
+   AKTİVASYON
+   ========================= */
 
 self.addEventListener("activate", event => {
+
   event.waitUntil(
+
     caches.keys()
-      .then(keys =>
-        Promise.all(
+      .then(keys => {
+
+        return Promise.all(
+
           keys
-            .filter(key =>
-              key !== CACHE_NAME
-            )
-            .map(key =>
-              caches.delete(key)
-            )
-        )
-      )
-      .then(() =>
-        self.clients.claim()
-      )
+            .filter(key => {
+              return key !== CACHE_NAME;
+            })
+            .map(key => {
+              return caches.delete(key);
+            })
+
+        );
+
+      })
+      .then(() => {
+
+        return self.clients.claim();
+
+      })
+
   );
+
 });
 
+
+/* =========================
+   İSTEKLER
+   ========================= */
+
 self.addEventListener("fetch", event => {
-  const request =
-    event.request;
+
+  const request = event.request;
+
 
   /*
-   * API isteklerini cache'leme.
-   * Böylece namaz vakitleri her zaman
-   * güncel internet verisinden gelir.
+   * Sadece GET isteklerini
+   * Service Worker yönetsin.
    */
+
+  if (
+    request.method !== "GET"
+  ) {
+
+    return;
+
+  }
+
+
+  /*
+   * NAMAZ VAKİTLERİ API
+   *
+   * API'yi cache'lemiyoruz.
+   * Böylece gerçek ve güncel
+   * vakitler alınır.
+   */
+
   if (
     request.url.includes(
-      "api.turkiyeapi.dev"
-    ) ||
-    request.url.includes(
-      "api.aladhan.com"
+      "ezanvakti.imsakiyem.com/api"
     )
   ) {
+
     event.respondWith(
-      fetch(request)
-        .catch(() =>
-          caches.match(request)
-        )
+
+      fetch(request, {
+        cache: "no-store"
+      })
+
     );
 
     return;
+
   }
 
+
   /*
-   * Site dosyalarında:
-   * önce internet,
-   * olmazsa cache.
+   * DİĞER DOSYALAR
+   *
+   * Önce internetten güncel dosyayı
+   * almaya çalış.
+   *
+   * İnternet yoksa cache kullan.
    */
+
   event.respondWith(
+
     fetch(request)
+
       .then(response => {
+
+        /*
+         * Başarılı cevap geldiyse
+         * cache'i güncelle.
+         */
 
         if (
           response &&
-          response.status === 200 &&
-          request.method === "GET"
+          response.status === 200
         ) {
-          const copy =
+
+          const responseClone =
             response.clone();
 
-          caches.open(
-            CACHE_NAME
-          ).then(cache => {
-            cache.put(
-              request,
-              copy
-            );
-          });
+          caches.open(CACHE_NAME)
+            .then(cache => {
+
+              cache.put(
+                request,
+                responseClone
+              );
+
+            });
+
         }
 
         return response;
+
       })
-      .catch(() =>
-        caches.match(request)
-      )
+
+      .catch(() => {
+
+        /*
+         * İnternet yoksa
+         * kayıtlı dosyayı kullan.
+         */
+
+        return caches.match(request);
+
+      })
+
   );
+
 });
-
-self.addEventListener(
-  "notificationclick",
-  event => {
-
-    event.notification.close();
-
-    event.waitUntil(
-      clients.matchAll({
-        type: "window",
-        includeUncontrolled: true
-      }).then(clientList => {
-
-        for (
-          const client of clientList
-        ) {
-          if (
-            "focus" in client
-          ) {
-            return client.focus();
-          }
-        }
-
-        if (
-          clients.openWindow
-        ) {
-          return clients.openWindow(
-            "./"
-          );
-        }
-      })
-    );
-  }
-);
