@@ -1,430 +1,273 @@
-const API = "https://ezanvakti.imsakiyem.com/api";
+const LOCATIONS_API = "https://api.turkiyeapi.dev/v2";
+const PRAYER_API = "https://api.aladhan.com/v1";
+const DEFAULT_PROVINCE_ID = 6;
 
 const city = document.getElementById("city");
 const district = document.getElementById("district");
 const timesBox = document.getElementById("times");
+const locationTitle = document.getElementById("location");
+const dateText = document.getElementById("date");
+const notifyButton = document.getElementById("notify");
+const qiblaButton = document.getElementById("qiblaBtn");
 
 const PRAYERS = [
-  ["imsak", "İmsak"],
-  ["gunes", "Güneş"],
-  ["ogle", "Öğle"],
-  ["ikindi", "İkindi"],
-  ["aksam", "Akşam"],
-  ["yatsi", "Yatsı"]
+  ["imsak", "İmsak", "Fajr"],
+  ["gunes", "Güneş", "Sunrise"],
+  ["ogle", "Öğle", "Dhuhr"],
+  ["ikindi", "İkindi", "Asr"],
+  ["aksam", "Akşam", "Maghrib"],
+  ["yatsi", "Yatsı", "Isha"]
 ];
 
 let currentTimes = null;
 let countdownTimer = null;
+let reminderTimer = null;
+let provinces = [];
+let districts = [];
+let notificationPermission =
+  "Notification" in window ? Notification.permission : "default";
 
+function getDateString(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
-/* -----------------------------
-   API
------------------------------ */
+function getApiDate(date = new Date()) {
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  return `${d}-${m}-${date.getFullYear()}`;
+}
+
+function normalizeText(value) {
+  return String(value || "")
+    .toLocaleLowerCase("tr-TR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ı/g, "i");
+}
 
 async function api(url) {
   const response = await fetch(url, {
-    headers: {
-      "Accept": "application/json"
-    }
+    method: "GET",
+    headers: { Accept: "application/json" },
+    cache: "no-store"
   });
 
   if (!response.ok) {
-    throw new Error(
-      "API hatası: " + response.status
-    );
+    throw new Error(`HTTP ${response.status}`);
   }
 
-  return await response.json();
+  return response.json();
 }
 
+function setSelectLoading(select, text) {
+  select.innerHTML = `<option value="">${text}</option>`;
+  select.disabled = true;
+}
 
-/* -----------------------------
-   TÜRKİYE
------------------------------ */
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[char]));
+}
+
+function fillSelect(select, items, getId, getName) {
+  select.innerHTML = items.map(item => {
+    const id = getId(item);
+    const name = getName(item);
+
+    return `
+      <option value="${escapeHtml(String(id))}">
+        ${escapeHtml(String(name))}
+      </option>
+    `;
+  }).join("");
+
+  select.disabled = items.length === 0;
+}
 
 async function loadTurkey() {
+  setSelectLoading(city, "İller yükleniyor…");
+  setSelectLoading(district, "İlçe yükleniyor…");
 
   try {
+    const result = await api(
+      `${LOCATIONS_API}/provinces?limit=100`
+    );
 
-    const result =
-      await api(
-        `${API}/locations/countries`
-      );
+    provinces = Array.isArray(result.data)
+      ? result.data
+      : [];
 
-    const countries =
-      result.data || result;
+    provinces.sort((a, b) =>
+      String(a.name).localeCompare(
+        String(b.name),
+        "tr"
+      )
+    );
 
-    const turkey =
-      countries.find(country => {
+    fillSelect(
+      city,
+      provinces,
+      p => p.id,
+      p => p.name
+    );
 
-        const name =
-          String(
-            country.name ||
-            country.Name ||
-            ""
-          ).toLowerCase();
+    const savedProvince =
+      localStorage.getItem("ezan_province");
 
-        return (
-          name.includes("türkiye") ||
-          name.includes("turkey")
-        );
-      });
+    const preferred =
+      provinces.find(
+        p => String(p.id) === savedProvince
+      ) ||
+      provinces.find(
+        p => p.id === DEFAULT_PROVINCE_ID
+      ) ||
+      provinces[0];
 
-    if (!turkey) {
-      throw new Error(
-        "Türkiye bulunamadı."
-      );
-    }
-
-    const turkeyId =
-      turkey.id ||
-      turkey._id;
-
-    const statesResult =
-      await api(
-        `${API}/locations/states?countryId=${turkeyId}`
-      );
-
-    const states =
-      statesResult.data ||
-      statesResult;
-
-    city.innerHTML =
-      states.map(state => {
-
-        const id =
-          state.id ||
-          state._id;
-
-        const name =
-          state.name ||
-          state.Name;
-
-        return `
-          <option value="${id}">
-            ${name}
-          </option>
-        `;
-
-      }).join("");
-
-    /* Ankara'yı başlangıç yap */
-    const ankara =
-      states.find(state =>
-        String(
-          state.name ||
-          state.Name ||
-          ""
-        ).toLowerCase()
-        .includes("ankara")
-      );
-
-    if (ankara) {
-      city.value =
-        ankara.id ||
-        ankara._id;
+    if (preferred) {
+      city.value = String(preferred.id);
     }
 
     await loadDistricts();
 
   } catch (error) {
-
     console.error(error);
 
-    city.innerHTML =
-      `<option>İller yüklenemedi</option>`;
-
-    district.innerHTML =
-      `<option>İlçeler yüklenemedi</option>`;
-
     showError(
-      "İl bilgileri alınamadı."
+      "İller alınamadı. İnternet bağlantını kontrol et."
     );
   }
 }
 
-
-/* -----------------------------
-   İLÇELER
------------------------------ */
-
 async function loadDistricts() {
+  const provinceId = city.value;
+
+  if (!provinceId) return;
+
+  localStorage.setItem(
+    "ezan_province",
+    provinceId
+  );
+
+  setSelectLoading(
+    district,
+    "İlçeler yükleniyor…"
+  );
 
   try {
+    const result = await api(
+      `${LOCATIONS_API}/provinces/${encodeURIComponent(
+        provinceId
+      )}/districts?limit=1000`
+    );
 
-    const stateId =
-      city.value;
+    districts = Array.isArray(result.data)
+      ? result.data
+      : [];
 
-    const result =
-      await api(
-        `${API}/locations/districts?stateId=${stateId}`
+    districts.sort((a, b) =>
+      String(a.name).localeCompare(
+        String(b.name),
+        "tr"
+      )
+    );
+
+    fillSelect(
+      district,
+      districts,
+      d => d.id,
+      d => d.name
+    );
+
+    const savedDistrict =
+      localStorage.getItem(
+        `ezan_district_${provinceId}`
       );
 
-    const districts =
-      result.data ||
-      result;
+    const preferred =
+      districts.find(
+        d => String(d.id) === savedDistrict
+      ) ||
+      districts.find(
+        d =>
+          normalizeText(d.name).includes(
+            "cankaya"
+          )
+      ) ||
+      districts[0];
 
-    district.innerHTML =
-      districts.map(item => {
+    if (preferred) {
+      district.value = String(preferred.id);
 
-        const id =
-          item.id ||
-          item._id;
-
-        const name =
-          item.name ||
-          item.Name;
-
-        return `
-          <option value="${id}">
-            ${name}
-          </option>
-        `;
-
-      }).join("");
-
-    /*
-      İlk ilçeyi seç
-    */
-
-    if (districts.length > 0) {
-
-      district.value =
-        districts[0].id ||
-        districts[0]._id;
+      localStorage.setItem(
+        `ezan_district_${provinceId}`,
+        district.value
+      );
 
       await loadPrayerTimes();
     }
 
   } catch (error) {
-
     console.error(error);
 
-    district.innerHTML =
-      `<option>İlçeler yüklenemedi</option>`;
+    setSelectLoading(
+      district,
+      "İlçeler alınamadı"
+    );
 
     showError(
-      "İlçe bilgileri alınamadı."
+      "İlçeler alınamadı. Birkaç saniye sonra tekrar dene."
     );
   }
 }
 
+function selectedProvinceName() {
+  return (
+    city.options[city.selectedIndex]
+      ?.textContent
+      ?.trim() ||
+    "Türkiye"
+  );
+}
 
-/* -----------------------------
-   GERÇEK VAKİTLER
------------------------------ */
+function selectedDistrictName() {
+  return (
+    district.options[district.selectedIndex]
+      ?.textContent
+      ?.trim() ||
+    ""
+  );
+}
 
 async function loadPrayerTimes() {
+  const province = selectedProvinceName();
+  const selectedDistrict =
+    selectedDistrictName();
 
-  try {
-
-    const districtId =
-      district.value;
-
-    if (!districtId) {
-      return;
-    }
-
-    /*
-      Bugünün tarihini al
-    */
-
-    const today =
-      getDateString();
-
-    /*
-      Günlük gerçek vakit
-    */
-
-    const result =
-      await api(
-        `${API}/prayer-times/${districtId}/daily?startDate=${today}`
-      );
-
-    const records =
-      result.data ||
-      result;
-
-    let record =
-      Array.isArray(records)
-        ? records[0]
-        : records;
-
-    /*
-      Eğer günlük cevap gelmezse
-      aylık veriden bugünü bul
-    */
-
-    if (!record) {
-
-      const monthly =
-        await api(
-          `${API}/prayer-times/${districtId}/monthly?startDate=${today}`
-        );
-
-      const list =
-        monthly.data ||
-        monthly;
-
-      record =
-        findToday(list);
-    }
-
-    if (!record) {
-      throw new Error(
-        "Bugünün vakti bulunamadı."
-      );
-    }
-
-    /*
-      Gerçek API formatı:
-      record.times
-    */
-
-    const times =
-      record.times ||
-      record;
-
-    currentTimes = {
-
-      imsak:
-        times.imsak,
-
-      gunes:
-        times.gunes,
-
-      ogle:
-        times.ogle,
-
-      ikindi:
-        times.ikindi,
-
-      aksam:
-        times.aksam,
-
-      yatsi:
-        times.yatsi
-    };
-
-    renderTimes();
-
-  } catch (error) {
-
-    console.error(error);
-
-    showError(
-      "Bugünün gerçek vakitleri alınamadı."
-    );
-  }
-}
-
-
-/* -----------------------------
-   BUGÜNÜ BUL
------------------------------ */
-
-function findToday(list) {
-
-  if (!Array.isArray(list)) {
-    return null;
-  }
-
-  const today =
-    getDateString();
-
-  return list.find(item => {
-
-    const date =
-      String(
-        item.date ||
-        item.tarih ||
-        ""
-      ).substring(0, 10);
-
-    return date === today;
-
-  });
-}
-
-
-/* -----------------------------
-   TARİH
------------------------------ */
-
-function getDateString() {
-
-  const now =
-    new Date();
-
-  const year =
-    now.getFullYear();
-
-  const month =
-    String(
-      now.getMonth() + 1
-    ).padStart(2, "0");
-
-  const day =
-    String(
-      now.getDate()
-    ).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-
-/* -----------------------------
-   EKRANA VAKİTLER
------------------------------ */
-
-function renderTimes() {
-
-  if (!currentTimes) {
+  if (
+    !province ||
+    !selectedDistrict ||
+    district.disabled
+  ) {
     return;
   }
 
-  timesBox.innerHTML =
-    PRAYERS.map(
-      ([key, name]) => {
+  localStorage.setItem(
+    `ezan_district_${city.value}`,
+    district.value
+  );
 
-        return `
-          <div
-            class="time"
-            data-time="${key}"
-          >
+  locationTitle.textContent =
+    `${province} / ${selectedDistrict}`;
 
-            <span>${name}</span>
-
-            <strong>
-              ${currentTimes[key] || "--:--"}
-            </strong>
-
-          </div>
-        `;
-
-      }
-    ).join("");
-
-  document.getElementById(
-    "iftar"
-  ).textContent =
-    currentTimes.aksam ||
-    "--:--";
-
-  document.getElementById(
-    "sahur"
-  ).textContent =
-    currentTimes.imsak ||
-    "--:--";
-
-  document.getElementById(
-    "location"
-  ).textContent =
-    `${city.options[city.selectedIndex]?.text || ""} / ${district.options[district.selectedIndex]?.text || ""}`;
-
-  document.getElementById(
-    "date"
-  ).textContent =
+  dateText.textContent =
     new Date().toLocaleDateString(
       "tr-TR",
       {
@@ -435,52 +278,152 @@ function renderTimes() {
       }
     );
 
-  startCountdown();
+  timesBox.innerHTML = `
+    <div class="loading-card">
+      <span>🕌</span>
+      <b>Vakitler getiriliyor…</b>
+      <small>Diyanet hesaplama yöntemi ile</small>
+    </div>
+  `;
+
+  try {
+    const params = new URLSearchParams({
+      city: selectedDistrict,
+      country: "Turkey",
+      state: province,
+      method: "13",
+      timezonestring: "Europe/Istanbul",
+      school: "1"
+    });
+
+    const result = await api(
+      `${PRAYER_API}/timingsByCity/${getApiDate()}?${params}`
+    );
+
+    const timings =
+      result?.data?.timings;
+
+    if (!timings) {
+      throw new Error(
+        "Vakit verisi bulunamadı"
+      );
+    }
+
+    currentTimes = {
+      imsak: cleanTime(
+        timings.Fajr ||
+        timings.Imsak
+      ),
+
+      gunes: cleanTime(
+        timings.Sunrise
+      ),
+
+      ogle: cleanTime(
+        timings.Dhuhr
+      ),
+
+      ikindi: cleanTime(
+        timings.Asr
+      ),
+
+      aksam: cleanTime(
+        timings.Maghrib
+      ),
+
+      yatsi: cleanTime(
+        timings.Isha
+      )
+    };
+
+    renderTimes();
+
+  } catch (error) {
+    console.error(
+      "Namaz vakitleri alınamadı:",
+      error
+    );
+
+    currentTimes = null;
+
+    showError(
+      "Vakitler alınamadı. İlçeyi tekrar seçmeyi dene."
+    );
+  }
 }
 
+function cleanTime(value) {
+  if (!value) return null;
 
-/* -----------------------------
-   SAAT
------------------------------ */
+  const match =
+    String(value).match(
+      /\b(\d{1,2}:\d{2})/
+    );
+
+  return match
+    ? match[1]
+    : null;
+}
+
+function renderTimes() {
+  if (!currentTimes) return;
+
+  timesBox.innerHTML =
+    PRAYERS.map(
+      ([key, name]) => `
+        <article
+          class="time"
+          data-time="${key}"
+        >
+          <span>${name}</span>
+          <strong>
+            ${currentTimes[key] || "--:--"}
+          </strong>
+        </article>
+      `
+    ).join("");
+
+  document.getElementById(
+    "iftar"
+  ).textContent =
+    currentTimes.aksam || "--:--";
+
+  document.getElementById(
+    "sahur"
+  ).textContent =
+    currentTimes.imsak || "--:--";
+
+  startCountdown();
+  updateNotificationStatus();
+}
 
 function toSeconds(value) {
+  if (!value) return null;
 
-  if (!value) {
+  const [h, m] =
+    String(value)
+      .split(":")
+      .map(Number);
+
+  if (
+    !Number.isFinite(h) ||
+    !Number.isFinite(m)
+  ) {
     return null;
   }
 
-  const parts =
-    String(value).split(":");
-
-  if (parts.length < 2) {
-    return null;
-  }
-
-  return (
-    Number(parts[0]) * 3600 +
-    Number(parts[1]) * 60
-  );
+  return h * 3600 + m * 60;
 }
 
-
-/* -----------------------------
-   GERİ SAYIM
------------------------------ */
-
 function startCountdown() {
-
   if (countdownTimer) {
     clearInterval(countdownTimer);
   }
 
-  function update() {
+  const update = () => {
+    if (!currentTimes) return;
 
-    if (!currentTimes) {
-      return;
-    }
-
-    const now =
-      new Date();
+    const now = new Date();
 
     const current =
       now.getHours() * 3600 +
@@ -489,11 +432,7 @@ function startCountdown() {
 
     let next = null;
 
-    for (
-      const [key, name]
-      of PRAYERS
-    ) {
-
+    for (const [key, name] of PRAYERS) {
       const seconds =
         toSeconds(
           currentTimes[key]
@@ -503,7 +442,6 @@ function startCountdown() {
         seconds !== null &&
         seconds > current
       ) {
-
         next = {
           key,
           name,
@@ -514,42 +452,38 @@ function startCountdown() {
       }
     }
 
-    /*
-      Günün son vakti geçtiyse
-      yarının imsakını göster
-    */
-
     if (!next) {
+      const imsak =
+        toSeconds(
+          currentTimes.imsak
+        );
 
       next = {
         key: "imsak",
         name: "Yarın İmsak",
         seconds:
-          toSeconds(
-            currentTimes.imsak
-          ) + 86400
+          (imsak || 0) + 86400
       };
     }
 
     let remaining =
-      next.seconds -
-      current;
+      next.seconds - current;
 
     if (remaining < 0) {
       remaining += 86400;
     }
 
-    const hours =
+    const h =
       Math.floor(
         remaining / 3600
       );
 
-    const minutes =
+    const m =
       Math.floor(
         (remaining % 3600) / 60
       );
 
-    const seconds =
+    const s =
       remaining % 60;
 
     document.getElementById(
@@ -560,24 +494,20 @@ function startCountdown() {
     document.getElementById(
       "countdown"
     ).textContent =
-      String(hours).padStart(2, "0") +
-      ":" +
-      String(minutes).padStart(2, "0") +
-      ":" +
-      String(seconds).padStart(2, "0");
+      `${String(h).padStart(2, "0")}:` +
+      `${String(m).padStart(2, "0")}:` +
+      `${String(s).padStart(2, "0")}`;
 
-    document.querySelectorAll(
-      ".time"
-    ).forEach(element => {
-
-      element.classList.toggle(
-        "current",
-        element.dataset.time === next.key
-      );
-
-    });
-
-  }
+    document
+      .querySelectorAll(".time")
+      .forEach(el => {
+        el.classList.toggle(
+          "current",
+          el.dataset.time ===
+            next.key
+        );
+      });
+  };
 
   update();
 
@@ -588,65 +518,275 @@ function startCountdown() {
     );
 }
 
-
-/* -----------------------------
-   HATA
------------------------------ */
-
 function showError(message) {
-
   timesBox.innerHTML = `
-    <div class="time">
-      <span>Bilgi</span>
-      <strong>${message}</strong>
+    <div class="error-card">
+      <span>⚠️</span>
+      <b>${escapeHtml(message)}</b>
+      <small>
+        Sayfayı yenilemeyi veya başka
+        bir ilçe seçmeyi dene.
+      </small>
     </div>
   `;
 }
 
+async function requestNotifications() {
+  if (!("Notification" in window)) {
+    alert(
+      "Bu tarayıcı bildirimleri desteklemiyor."
+    );
+    return;
+  }
 
-/* -----------------------------
-   BİLDİRİM İZNİ
------------------------------ */
+  notificationPermission =
+    await Notification.requestPermission();
 
-document.getElementById(
-  "notify"
-).addEventListener(
-  "click",
-  async () => {
+  updateNotificationStatus();
 
-    if (
-      !("Notification" in window)
-    ) {
+  if (
+    notificationPermission ===
+    "granted"
+  ) {
+    try {
+      const registration =
+        await navigator
+          .serviceWorker
+          .ready;
 
-      alert(
-        "Bu cihaz bildirimleri desteklemiyor."
+      await registration.showNotification(
+        "Ezan Vakti",
+        {
+          body:
+            "Bildirimler açıldı.",
+          icon: "./icon.svg",
+          badge: "./icon.svg"
+        }
       );
 
-      return;
-    }
-
-    const permission =
-      await Notification.requestPermission();
-
-    if (
-      permission === "granted"
-    ) {
-
+    } catch (_) {
       new Notification(
         "Ezan Vakti",
         {
           body:
-            "Bildirim izni açıldı."
+            "Bildirimler açıldı."
         }
       );
     }
+
+    startReminderLoop();
   }
-);
+}
 
+function updateNotificationStatus() {
+  if (!notifyButton) return;
 
-/* -----------------------------
-   SEÇİMLER
------------------------------ */
+  if (
+    notificationPermission ===
+    "granted"
+  ) {
+    notifyButton.textContent =
+      "🔔 Bildirimler Açık";
+
+    notifyButton.classList.add(
+      "enabled"
+    );
+
+  } else {
+    notifyButton.textContent =
+      "🔔 Bildirimleri Aç";
+
+    notifyButton.classList.remove(
+      "enabled"
+    );
+  }
+}
+
+function startReminderLoop() {
+  if (reminderTimer) {
+    clearInterval(reminderTimer);
+  }
+
+  reminderTimer =
+    setInterval(
+      checkPrayerReminder,
+      30000
+    );
+
+  checkPrayerReminder();
+}
+
+function checkPrayerReminder() {
+  if (
+    notificationPermission !==
+      "granted" ||
+    !currentTimes
+  ) {
+    return;
+  }
+
+  const now = new Date();
+
+  const clock =
+    `${String(now.getHours()).padStart(2, "0")}:` +
+    `${String(now.getMinutes()).padStart(2, "0")}`;
+
+  const minuteKey =
+    `${getDateString()}-${clock}`;
+
+  const already =
+    localStorage.getItem(
+      "ezan_last_notification"
+    );
+
+  for (const [
+    key,
+    name
+  ] of PRAYERS) {
+
+    const time =
+      currentTimes[key];
+
+    if (!time) continue;
+
+    if (
+      clock === time &&
+      already !==
+        `${minuteKey}-${key}`
+    ) {
+
+      localStorage.setItem(
+        "ezan_last_notification",
+        `${minuteKey}-${key}`
+      );
+
+      navigator
+        .serviceWorker
+        .ready
+        .then(reg =>
+          reg.showNotification(
+            "🕌 Ezan Vakti",
+            {
+              body:
+                `${name} vakti geldi — ` +
+                `${selectedProvinceName()} / ` +
+                `${selectedDistrictName()}`,
+              icon: "./icon.svg",
+              badge: "./icon.svg",
+              tag: `ezan-${key}`
+            }
+          )
+        )
+        .catch(() => {});
+    }
+  }
+}
+
+function calculateQibla() {
+  const output =
+    document.getElementById(
+      "qibla"
+    );
+
+  if (!navigator.geolocation) {
+    output.textContent =
+      "Konum yok";
+    return;
+  }
+
+  output.textContent =
+    "Hesaplanıyor…";
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+
+      const {
+        latitude,
+        longitude
+      } = position.coords;
+
+      const kaabaLat =
+        21.422487;
+
+      const kaabaLon =
+        39.826206;
+
+      const φ1 =
+        latitude *
+        Math.PI /
+        180;
+
+      const φ2 =
+        kaabaLat *
+        Math.PI /
+        180;
+
+      const Δλ =
+        (kaabaLon - longitude) *
+        Math.PI /
+        180;
+
+      const y =
+        Math.sin(Δλ);
+
+      const x =
+        Math.cos(φ1) *
+          Math.tan(φ2) -
+        Math.sin(φ1) *
+          Math.cos(Δλ);
+
+      let bearing =
+        Math.atan2(y, x) *
+        180 /
+        Math.PI;
+
+      bearing =
+        (bearing + 360) %
+        360;
+
+      output.textContent =
+        `${Math.round(bearing)}° ` +
+        `${directionName(bearing)}`;
+    },
+
+    () => {
+      output.textContent =
+        "Konum izni gerekli";
+    },
+
+    {
+      enableHighAccuracy: true,
+      timeout: 10000
+    }
+  );
+}
+
+function directionName(degrees) {
+  const names = [
+    "K",
+    "K-KD",
+    "KD",
+    "D-KD",
+    "D",
+    "D-GD",
+    "GD",
+    "G-GD",
+    "G",
+    "G-GB",
+    "GB",
+    "B-GB",
+    "B",
+    "B-KB",
+    "KB",
+    "K-KB"
+  ];
+
+  return names[
+    Math.round(
+      degrees / 22.5
+    ) % 16
+  ];
+}
 
 city.addEventListener(
   "change",
@@ -658,37 +798,40 @@ district.addEventListener(
   loadPrayerTimes
 );
 
+notifyButton?.addEventListener(
+  "click",
+  requestNotifications
+);
 
-/* -----------------------------
-   TARİH DEĞİŞİNCE OTOMATİK YENİLE
------------------------------ */
+qiblaButton?.addEventListener(
+  "click",
+  calculateQibla
+);
 
 let lastDate =
   getDateString();
 
 setInterval(
   async () => {
-
     const today =
       getDateString();
 
     if (
       today !== lastDate
     ) {
-
-      lastDate =
-        today;
-
+      lastDate = today;
       await loadPrayerTimes();
     }
-
   },
   60000
 );
 
+if (
+  notificationPermission ===
+  "granted"
+) {
+  startReminderLoop();
+}
 
-/* -----------------------------
-   SAYFA AÇILDI
------------------------------ */
-
+updateNotificationStatus();
 loadTurkey();
