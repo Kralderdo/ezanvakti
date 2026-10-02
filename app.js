@@ -33,8 +33,6 @@ let refreshTimer = null;
 ========================= */
 
 async function getJSON(url) {
-  console.log("API:", url);
-
   const response = await fetch(url, {
     method: "GET",
     cache: "no-store",
@@ -58,19 +56,18 @@ async function getJSON(url) {
 function updateDate() {
   if (!dateBox) return;
 
-  const now = new Date();
-
-  dateBox.textContent = now.toLocaleDateString("tr-TR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
+  dateBox.textContent =
+    new Date().toLocaleDateString("tr-TR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
 }
 
 
 /* =========================
-   TÜRKİYE 81 İL
+   TÜRKİYE - 81 İL
 ========================= */
 
 async function loadTurkey() {
@@ -97,61 +94,84 @@ async function loadTurkey() {
           ? result
           : [];
 
-    if (!states.length) {
+    /*
+     * SADECE TÜRKİYE
+     * country_id = 2
+     */
+
+    const turkeyStates = states.filter(item => {
+
+      const countryId =
+        item.country_id ??
+        item.countryId ??
+        item.country?.id;
+
+      return String(countryId) === "2";
+    });
+
+    if (!turkeyStates.length) {
       throw new Error(
         "Türkiye illeri bulunamadı."
       );
     }
 
-    /*
-     * API'den gelen gerçek illeri kullanıyoruz.
-     * ID'lere kesinlikle dokunulmuyor.
-     */
-
     city.innerHTML = "";
 
-    states.forEach(item => {
+    turkeyStates
+      .sort((a, b) =>
+        String(
+          a.name ||
+          a.name_tr ||
+          ""
+        ).localeCompare(
+          String(
+            b.name ||
+            b.name_tr ||
+            ""
+          ),
+          "tr"
+        )
+      )
+      .forEach(item => {
 
-      const id =
-        item.id ??
-        item._id ??
-        item.stateId;
+        const id =
+          item._id ??
+          item.id ??
+          item.stateId;
 
-      const name =
-        item.name ??
-        item.name_tr ??
-        item.name_en ??
-        item.title;
+        const name =
+          item.name ??
+          item.name_tr ??
+          item.name_en ??
+          item.title;
 
-      if (!id || !name) return;
+        if (!id || !name) return;
 
-      const option =
-        document.createElement("option");
+        const option =
+          document.createElement("option");
 
-      option.value = String(id);
+        option.value = String(id);
+        option.textContent =
+          formatName(name);
 
-      option.textContent =
-        formatName(name);
-
-      city.appendChild(option);
-    });
-
-    if (!city.options.length) {
-      throw new Error(
-        "İl listesi boş."
-      );
-    }
+        city.appendChild(option);
+      });
 
     city.disabled = false;
 
-    city.selectedIndex = 0;
+    /*
+     * İlk il
+     */
 
-    await loadDistricts();
+    if (city.options.length > 0) {
+      city.selectedIndex = 0;
+      await loadDistricts();
+    }
 
   } catch (error) {
 
     console.error(
-      "İller yüklenirken hata:",
+      "İller yüklenemedi:",
       error
     );
 
@@ -160,23 +180,17 @@ async function loadTurkey() {
 
     district.innerHTML =
       "<option>Tekrar deneyin</option>";
-
-    if (locationTitle) {
-      locationTitle.textContent =
-        "Türkiye";
-    }
   }
 }
 
 
 /* =========================
-   İLÇELER
+   TÜM İLÇELER
 ========================= */
 
 async function loadDistricts() {
 
-  const stateId =
-    city.value;
+  const stateId = city.value;
 
   if (!stateId) return;
 
@@ -187,12 +201,9 @@ async function loadDistricts() {
 
   try {
 
-    const result =
-      await getJSON(
-        `${API}/locations/districts?stateId=${encodeURIComponent(
-          stateId
-        )}`
-      );
+    const result = await getJSON(
+      `${API}/locations/districts?stateId=${encodeURIComponent(stateId)}`
+    );
 
     const districts =
       Array.isArray(result.data)
@@ -201,7 +212,32 @@ async function loadDistricts() {
           ? result
           : [];
 
-    if (!districts.length) {
+    /*
+     * SADECE TÜRKİYE İLÇELERİ
+     */
+
+    const turkeyDistricts =
+      districts.filter(item => {
+
+        const countryId =
+          item.country_id ??
+          item.countryId ??
+          item.country?.id;
+
+        /*
+         * API bazı cevaplarda country_id
+         * göndermeyebilir.
+         * O durumda ilçeyi bırakıyoruz.
+         */
+
+        return (
+          countryId === undefined ||
+          countryId === null ||
+          String(countryId) === "2"
+        );
+      });
+
+    if (!turkeyDistricts.length) {
       throw new Error(
         "Bu ile ait ilçe bulunamadı."
       );
@@ -209,42 +245,51 @@ async function loadDistricts() {
 
     district.innerHTML = "";
 
-    districts.forEach(item => {
+    turkeyDistricts
+      .sort((a, b) =>
+        String(
+          a.name ||
+          a.name_tr ||
+          ""
+        ).localeCompare(
+          String(
+            b.name ||
+            b.name_tr ||
+            ""
+          ),
+          "tr"
+        )
+      )
+      .forEach(item => {
 
-      const id =
-        item.id ??
-        item._id ??
-        item.districtId;
+        const id =
+          item._id ??
+          item.id ??
+          item.districtId;
 
-      const name =
-        item.name ??
-        item.name_tr ??
-        item.name_en ??
-        item.title;
+        const name =
+          item.name ??
+          item.name_tr ??
+          item.name_en ??
+          item.title;
 
-      if (!id || !name) return;
+        if (!id || !name) return;
 
-      const option =
-        document.createElement("option");
+        const option =
+          document.createElement("option");
 
-      option.value =
-        String(id);
+        option.value = String(id);
+        option.textContent =
+          formatName(name);
 
-      option.textContent =
-        formatName(name);
-
-      district.appendChild(option);
-    });
-
-    if (!district.options.length) {
-      throw new Error(
-        "İlçe listesi boş."
-      );
-    }
+        district.appendChild(option);
+      });
 
     district.disabled = false;
 
-    district.selectedIndex = 0;
+    if (district.options.length > 0) {
+      district.selectedIndex = 0;
+    }
 
     updateLocation();
 
@@ -253,7 +298,7 @@ async function loadDistricts() {
   } catch (error) {
 
     console.error(
-      "İlçeler yüklenirken hata:",
+      "İlçeler yüklenemedi:",
       error
     );
 
@@ -271,8 +316,7 @@ async function loadDistricts() {
 
 async function loadPrayerTimes() {
 
-  const districtId =
-    district.value;
+  const districtId = district.value;
 
   if (!districtId) return;
 
@@ -280,8 +324,7 @@ async function loadPrayerTimes() {
 
   try {
 
-    const now =
-      new Date();
+    const now = new Date();
 
     const today =
       now.getFullYear() +
@@ -307,18 +350,13 @@ async function loadPrayerTimes() {
     if (Array.isArray(result.data)) {
 
       data =
-        result.data.find(item => {
-
-          const date =
-            String(
-              item.date ||
-              item.tarih ||
-              ""
-            );
-
-          return date.startsWith(today);
-
-        }) ||
+        result.data.find(item =>
+          String(
+            item.date ||
+            item.tarih ||
+            ""
+          ).startsWith(today)
+        ) ||
         result.data[0];
 
     } else {
@@ -390,13 +428,12 @@ async function loadPrayerTimes() {
     };
 
     renderTimes();
-
     updateLocation();
 
   } catch (error) {
 
     console.error(
-      "Namaz vakitleri hatası:",
+      "Vakit hatası:",
       error
     );
 
@@ -428,10 +465,7 @@ function findTime(data, keys) {
       data[key] !== null &&
       String(data[key]).trim() !== ""
     ) {
-
-      return String(
-        data[key]
-      ).trim();
+      return String(data[key]).trim();
     }
   }
 
@@ -440,7 +474,7 @@ function findTime(data, keys) {
 
 
 /* =========================
-   VAKİTLERİ GÖSTER
+   VAKİTLER
 ========================= */
 
 function renderTimes() {
@@ -448,27 +482,24 @@ function renderTimes() {
   if (!currentTimes) return;
 
   timesBox.innerHTML =
-    names
-      .map(([key, name]) => {
+    names.map(([key, name]) => {
 
-        const value =
-          currentTimes[key] ||
-          "--:--";
+      const value =
+        currentTimes[key] || "--:--";
 
-        return `
-          <div
-            class="time"
-            data-time="${key}"
-          >
-            <span>${name}</span>
+      return `
+        <div
+          class="time"
+          data-time="${key}"
+        >
+          <span>${name}</span>
+          <strong>
+            ${escapeHTML(value)}
+          </strong>
+        </div>
+      `;
 
-            <strong>
-              ${escapeHTML(value)}
-            </strong>
-          </div>
-        `;
-      })
-      .join("");
+    }).join("");
 
   const iftar =
     document.getElementById("iftar");
@@ -478,14 +509,12 @@ function renderTimes() {
 
   if (iftar) {
     iftar.textContent =
-      currentTimes.aksam ||
-      "--:--";
+      currentTimes.aksam || "--:--";
   }
 
   if (sahur) {
     sahur.textContent =
-      currentTimes.imsak ||
-      "--:--";
+      currentTimes.imsak || "--:--";
   }
 
   startCountdown();
@@ -499,9 +528,7 @@ function renderTimes() {
 function startCountdown() {
 
   if (countdownTimer) {
-    clearInterval(
-      countdownTimer
-    );
+    clearInterval(countdownTimer);
   }
 
   updateCountdown();
@@ -518,8 +545,7 @@ function updateCountdown() {
 
   if (!currentTimes) return;
 
-  const now =
-    new Date();
+  const now = new Date();
 
   const currentSeconds =
     now.getHours() * 3600 +
@@ -552,21 +578,13 @@ function updateCountdown() {
     }
   }
 
-  /*
-   * Bugünün vakitleri bittiyse
-   * yarının İmsak vaktini göster.
-   */
-
   if (!next) {
 
-    const first =
-      names[0];
+    const first = names[0];
 
     const firstSeconds =
       timeToSeconds(
-        currentTimes[
-          first[0]
-        ]
+        currentTimes[first[0]]
       );
 
     if (firstSeconds !== null) {
@@ -575,22 +593,12 @@ function updateCountdown() {
         key: first[0],
         name: "Yarın İmsak",
         seconds:
-          firstSeconds +
-          86400
+          firstSeconds + 86400
       };
     }
   }
 
-  if (!next) {
-
-    nextName.textContent =
-      "—";
-
-    countdownBox.textContent =
-      "--:--:--";
-
-    return;
-  }
+  if (!next) return;
 
   nextName.textContent =
     next.name;
@@ -617,14 +625,11 @@ function updateCountdown() {
     remaining % 60;
 
   countdownBox.textContent =
-    String(hours)
-      .padStart(2, "0") +
+    String(hours).padStart(2, "0") +
     ":" +
-    String(minutes)
-      .padStart(2, "0") +
+    String(minutes).padStart(2, "0") +
     ":" +
-    String(seconds)
-      .padStart(2, "0");
+    String(seconds).padStart(2, "0");
 
   document
     .querySelectorAll(".time")
@@ -642,7 +647,7 @@ function updateCountdown() {
 
 
 /* =========================
-   SAAT → SANİYE
+   SAAT
 ========================= */
 
 function timeToSeconds(value) {
@@ -694,11 +699,7 @@ function updateLocation() {
 
   if (
     cityName &&
-    districtName &&
-    !cityName.includes("yüklen") &&
-    !districtName.includes("yüklen") &&
-    !districtName.includes("beklen") &&
-    !districtName.includes("Tekrar")
+    districtName
   ) {
 
     locationTitle.textContent =
@@ -724,9 +725,7 @@ function updateLocation() {
 function startAutoRefresh() {
 
   if (refreshTimer) {
-    clearInterval(
-      refreshTimer
-    );
+    clearInterval(refreshTimer);
   }
 
   refreshTimer =
@@ -752,49 +751,36 @@ async function enableNotifications() {
     return;
   }
 
-  try {
+  const permission =
+    await Notification.requestPermission();
 
-    const permission =
-      await Notification.requestPermission();
+  if (permission !== "granted") {
 
-    if (
-      permission !== "granted"
-    ) {
-
-      alert(
-        "Bildirim izni verilmedi."
-      );
-
-      return;
-    }
-
-    notifyButton.classList.add(
-      "enabled"
+    alert(
+      "Bildirim izni verilmedi."
     );
 
-    notifyButton.textContent =
-      "🔔 Bildirimler Açık";
-
-    new Notification(
-      "Ezan Vakti",
-      {
-        body:
-          "Bildirimler başarıyla açıldı."
-      }
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Bildirim hatası:",
-      error
-    );
+    return;
   }
+
+  notifyButton.classList.add(
+    "enabled"
+  );
+
+  notifyButton.textContent =
+    "🔔 Bildirimler Açık";
+
+  new Notification(
+    "Ezan Vakti",
+    {
+      body:
+        "Bildirimler başarıyla açıldı."
+    }
+  );
 }
 
 
 if (notifyButton) {
-
   notifyButton.addEventListener(
     "click",
     enableNotifications
@@ -808,9 +794,7 @@ if (notifyButton) {
 
 function calculateQibla() {
 
-  if (
-    !navigator.geolocation
-  ) {
+  if (!navigator.geolocation) {
 
     qiblaBox.textContent =
       "Konum desteklenmiyor";
@@ -872,16 +856,9 @@ function calculateQibla() {
 
       qiblaBox.textContent =
         `${Math.round(bearing)}°`;
-
     },
 
-    error => {
-
-      console.error(
-        "Konum hatası:",
-        error
-      );
-
+    () => {
       qiblaBox.textContent =
         "Konum alınamadı";
     },
@@ -896,7 +873,6 @@ function calculateQibla() {
 
 
 if (qiblaButton) {
-
   qiblaButton.addEventListener(
     "click",
     calculateQibla
@@ -905,30 +881,22 @@ if (qiblaButton) {
 
 
 /* =========================
-   İL DEĞİŞİNCE
+   DEĞİŞİKLİKLER
 ========================= */
 
 city.addEventListener(
   "change",
   async () => {
-
     await loadDistricts();
-
     updateLocation();
   }
 );
 
 
-/* =========================
-   İLÇE DEĞİŞİNCE
-========================= */
-
 district.addEventListener(
   "change",
   async () => {
-
     await loadPrayerTimes();
-
     updateLocation();
   }
 );
@@ -941,26 +909,11 @@ district.addEventListener(
 function escapeHTML(value) {
 
   return String(value)
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 
@@ -973,11 +926,7 @@ function showLoading() {
   timesBox.innerHTML = `
     <div class="loading-card">
       <span>🕌</span>
-
-      <b>
-        Vakitler yükleniyor…
-      </b>
-
+      <b>Vakitler yükleniyor…</b>
       <small>
         Güncel bilgiler getiriliyor
       </small>
@@ -987,7 +936,7 @@ function showLoading() {
 
 
 /* =========================
-   İSİM DÜZELTME
+   İSİM
 ========================= */
 
 function formatName(name) {
@@ -997,9 +946,7 @@ function formatName(name) {
     .replace(
       /(^|\s)\S/g,
       letter =>
-        letter.toLocaleUpperCase(
-          "tr-TR"
-        )
+        letter.toLocaleUpperCase("tr-TR")
     );
 }
 
@@ -1009,7 +956,5 @@ function formatName(name) {
 ========================= */
 
 updateDate();
-
 loadTurkey();
-
 startAutoRefresh();
